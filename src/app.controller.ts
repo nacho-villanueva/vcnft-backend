@@ -6,18 +6,23 @@ import { Response } from 'express';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('resolve')
-  async resolveDID(): Promise<any> {
-    return this.appService.resolveDID();
-  }
+  // @Get('resolve')
+  // async resolveDID(): Promise<any> {
+  //   return this.appService.resolveDID();
+  // }
 
   @Get('create')
   async createDID(@Res() res: Response): Promise<any> {
     return res.json(await this.appService.createDID());
   }
 
-  @Get('publish')
-  async publishDID(@Res() res: Response): Promise<any> {
-    return res.json(await this.appService.publishDID());
+    @Get('publish')
+    async publishDID(@Res() res: Response): Promise<any> {
+      return res.json(await this.appService.publishDID());
+    }
+
+  @Get("request-credential")
+  async requestCredential(@Res() res: Response) {
+    return res.json(await this.appService.requestCreateCredential());
   }
 }
