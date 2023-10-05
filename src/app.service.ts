@@ -1,25 +1,28 @@
-import {Injectable} from '@nestjs/common';
-import {existsSync, readFileSync, writeFileSync} from 'fs';
+import { Injectable } from '@nestjs/common';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import {
   Agent,
+  AgentModenaRegistry,
+  AgentModenaResolver,
   AgentModenaUniversalRegistry,
   AgentModenaUniversalResolver,
-  CredentialFlow, DID,
+  CredentialFlow,
   IAgentStorage,
   WACICredentialOfferSucceded,
-  WACIProtocol
-} from "@extrimian/agent";
-import {KMSClient} from "@extrimian/kms-client";
-import {LANG, Suite} from "@extrimian/kms-core";
-import {AssertionMethodPurpose, KeyAgreementPurpose} from "@extrimian/did-core";
-import {CreateDIDResponse, Did} from "@extrimian/did-registry";
+  WACIProtocol,
+} from '@extrimian/agent';
+import { KMSClient } from '@extrimian/kms-client';
+import { LANG, Suite } from '@extrimian/kms-core';
+import {
+  AssertionMethodPurpose,
+  KeyAgreementPurpose,
+} from '@extrimian/did-core';
+import { CreateDIDResponse, Did } from '@extrimian/did-registry';
 
 export class FileSystemStorage implements IAgentStorage {
   public readonly filepath: string;
 
-  constructor(params: {
-    filepath: string
-  }) {
+  constructor(params: { filepath: string }) {
     this.filepath = params.filepath;
   }
 
@@ -55,7 +58,7 @@ export class FileSystemStorage implements IAgentStorage {
     }
 
     const file = readFileSync(this.filepath, {
-      encoding: "utf-8",
+      encoding: 'utf-8',
     });
 
     if (!file) {
@@ -67,7 +70,7 @@ export class FileSystemStorage implements IAgentStorage {
 
   private saveData(data: Map<string, any>) {
     writeFileSync(this.filepath, JSON.stringify(Object.fromEntries(data)), {
-      encoding: "utf-8",
+      encoding: 'utf-8',
     });
   }
 }
@@ -75,134 +78,148 @@ export class FileSystemStorage implements IAgentStorage {
 @Injectable()
 export class AppService {
   private agent: Agent;
-
   constructor() {
-    const issuerDID = {
-      name: "asd",
-      id: "13"
-    }
-
     const waciProtocol = new WACIProtocol({
-      storage: new FileSystemStorage({filepath: "asd-storage"}),
+      storage: new FileSystemStorage({ filepath: 'asd-storage' }),
       issuer: {
-        issueCredentials: async (waciInvitationId: string, holderId: string) => {
+        issueCredentials: async (
+          waciInvitationId: string,
+          holderId: string,
+        ) => {
           return new WACICredentialOfferSucceded({
-            credentials: [{
-              credential: {
-                "@context": [
-                  "https://www.w3.org/2018/credentials/v1",
-                  "https://www.w3.org/2018/credentials/examples/v1",
-                  "https://w3id.org/security/bbs/v1"
-                ],
-                id: "http://example.edu/credentials/58473",
-                type: [
-                  "VerifiableCredential",
-                  "AlumniCredential"
-                ],
-                issuer: "did:quarkid:zksync:EiC_pKyUEzxzcocN4F8EIUc1RefcxmL3LwdiVzkEAWqKFQ",
-                issuanceDate: new Date(),
-                credentialSubject: {
-                  id: holderId,
-                  givenName: "Jhon",
-                  familyName: "Does"
-                }
-              },
-              outputDescriptor: {
-                id: "alumni_credential_output",
-                schema: "https://schema.org/EducationalOccupationalCredential",
-                display: {
-                  title: {
-                    path: [
-                      "$.name",
-                      "$.vc.name"
-                    ],
-                    fallback: "Alumni Credential"
-                  },
-                  subtitle: {
-                    path: [
-                      "$.class",
-                      "$.vc.class"
-                    ],
-                    fallback: "Alumni"
-                  },
-                  description: {
-                    "text": "Credencial que permite validar que es alumno del establecimiento"
+            credentials: [
+              {
+                credential: {
+                  '@context': [
+                    'https://www.w3.org/2018/credentials/v1',
+                    'https://www.w3.org/2018/credentials/examples/v1',
+                    'https://w3id.org/security/bbs/v1',
+                  ],
+                  id: 'http://example.edu/credentials/58473',
+                  type: ['VerifiableCredential', 'AlumniCredential'],
+                  issuer:
+                    'did:quarkid:zksync:EiC_pKyUEzxzcocN4F8EIUc1RefcxmL3LwdiVzkEAWqKFQ',
+                  issuanceDate: new Date(),
+                  credentialSubject: {
+                    id: holderId,
+                    givenName: 'Jhon',
+                    familyName: 'Does',
                   },
                 },
-                styles: {
-                  background: {
-                    color: "#ff0000"
+                outputDescriptor: {
+                  id: 'alumni_credential_output',
+                  schema:
+                    'https://schema.org/EducationalOccupationalCredential',
+                  display: {
+                    title: {
+                      path: ['$.name', '$.vc.name'],
+                      fallback: 'Alumni Credential',
+                    },
+                    subtitle: {
+                      path: ['$.class', '$.vc.class'],
+                      fallback: 'Alumni',
+                    },
+                    description: {
+                      text: 'Credencial que permite validar que es alumno del establecimiento',
+                    },
                   },
-                  thumbnail: {
-                    uri: "https://dol.wa.com/logo.png",
-                    alt: "Universidad Nacional"
+                  styles: {
+                    background: {
+                      color: '#ff0000',
+                    },
+                    thumbnail: {
+                      uri: 'https://dol.wa.com/logo.png',
+                      alt: 'Universidad Nacional',
+                    },
+                    hero: {
+                      uri: 'https://dol.wa.com/alumnos.png',
+                      alt: 'Alumnos de la universidad',
+                    },
+                    text: {
+                      color: '#d4d400',
+                    },
                   },
-                  hero: {
-                    uri: "https://dol.wa.com/alumnos.png",
-                    alt: "Alumnos de la universidad"
-                  },
-                  text: {
-                    color: "#d4d400"
-                  }
-                }
-              }
-            }],
+                },
+              },
+            ],
             issuer: {
-              name: "Universidad Nacional",
+              name: 'Universidad Nacional',
               styles: {
                 thumbnail: {
-                  uri: "https://dol.wa.com/logo.png",
-                  alt: "Universidad Nacional"
+                  uri: 'https://dol.wa.com/logo.png',
+                  alt: 'Universidad Nacional',
                 },
                 hero: {
-                  uri: "https://dol.wa.com/alumnos.png",
-                  alt: "Alumnos de la universidad"
+                  uri: 'https://dol.wa.com/alumnos.png',
+                  alt: 'Alumnos de la universidad',
                 },
                 background: {
-                  color: "#ff0000"
+                  color: '#ff0000',
                 },
                 text: {
-                  color: "#d4d400"
-                }
-              }
+                  color: '#d4d400',
+                },
+              },
             },
             options: {
-              challenge: "508adef4-b8e0-4edf-a53d-a260371c1423",
-              domain: "9rf25a28rs96"
+              challenge: '508adef4-b8e0-4edf-a53d-a260371c1423',
+              domain: '9rf25a28rs96',
             },
           });
-        }
-      }
+        },
+      },
     });
 
     //Crear una nueva instancia del agente, se deben pasar los protocolos a usar para la generación de VC (por ejemplo el WACIProtocol que definimos anteriormente)
     this.agent = new Agent({
-      agentStorage: new FileSystemStorage({filepath: "agent-store"}), secureStorage: new FileSystemStorage({filepath: "secure-store" }), vcStorage: new FileSystemStorage({filepath: "vs-store"}),
-      didDocumentRegistry: new AgentModenaUniversalRegistry('https://demo.extrimian.com/sidetree-zksync-quarkid/'),
-      didDocumentResolver: new AgentModenaUniversalResolver('https://demo.extrimian.com/sidetree-zksync-quarkid/'),
-      vcProtocols: [waciProtocol]
+      agentStorage: new FileSystemStorage({ filepath: 'agent-store' }),
+      secureStorage: new FileSystemStorage({ filepath: 'secure-store' }),
+      vcStorage: new FileSystemStorage({ filepath: 'vs-store' }),
+      didDocumentRegistry: new AgentModenaRegistry(
+        'https://demo.extrimian.com/sidetree-zksync-quarkid/',
+      ),
+      didDocumentResolver: new AgentModenaResolver(
+        'https://demo.extrimian.com/sidetree-zksync-quarkid/',
+      ),
+      vcProtocols: [waciProtocol],
     });
 
-    this.agent.registry.initialize({
-      kms: new KMSClient({
-        lang: LANG.en,
-        storage: new FileSystemStorage({filepath: "kms-storage"}),
-      })
-    })
+    this.agent.initialize();
+
+    console.log('creating DID');
+    this.agent.identity.didCreated.on(async (args) => {
+      console.log(args.did);
+      this.agent.vc
+        .createInvitationMessage({ flow: CredentialFlow.Issuance })
+        .then((message) => console.log(message));
+    });
+
+
+
+    // this.agent.registry.initialize({
+    //   kms: new KMSClient({
+    //     lang: LANG.en,
+    //     storage: new FileSystemStorage({ filepath: 'kms-storage' }),
+    //   }),
+    // });
 
     // this.agent.identity.createNewDID({
     //   dwnUrl: 'https://demo.extrimian.com/sidetree-zksync-quarkid/dwn'
     // }).then(r => console.log(r))
 
-    this.agent.identity.addDID({
-      did: DID.from("did:quarkid:zksync:EiC_pKyUEzxzcocN4F8EIUc1RefcxmL3LwdiVzkEAWqKFQ")
-    }).then(r => console.log(r))
+    // this.agent.identity
+    //   .addDID({
+    //     did: DID.from(
+    //       'did:quarkid:zksync:EiC_pKyUEzxzcocN4F8EIUc1RefcxmL3LwdiVzkEAWqKFQ',
+    //     ),
+    //   })
+    //   .then((r) => console.log(r));
   }
 
   static kms = new KMSClient({
     lang: LANG.en,
-    storage: new FileSystemStorage({filepath: "did-store"})
-  })
+    storage: new FileSystemStorage({ filepath: 'did-store' }),
+  });
 
   async createDID(): Promise<CreateDIDResponse> {
     const updateKey = await AppService.kms.create(Suite.ES256k);
@@ -259,7 +276,9 @@ export class AppService {
   //   return await resolver.resolveDID(canonicalId);
   // }
 
-  async requestCreateCredential(){
-    return await this.agent.vc.createInvitationMessage({ flow: CredentialFlow.Issuance })
+  async requestCreateCredential() {
+    return await this.agent.vc.createInvitationMessage({
+      flow: CredentialFlow.Issuance,
+    });
   }
 }
